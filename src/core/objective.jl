@@ -190,10 +190,10 @@ function objective_mc_variable_pg_cost(pm::AbstractUnbalancedPowerModel; report:
         pg_cost = var(pm, n)[:pg_cost] = Dict{Int,Any}()
 
         for (i,gen) in ref(pm, n, :gen)
-            points = calc_pwl_points(gen["ncost"], gen["cost"], gen["pmin"], gen["pmax"])
+            points = calc_pwl_points(gen["ncost"], gen["cost"], sum(gen["pmin"]), sum(gen["pmax"]))
 
             pg_cost_lambda = JuMP.@variable(pm.model,
-                [i in 1:length(points)], base_name="$(n)_pg_cost_lambda",
+                [j in 1:length(points)], base_name="$(n)_pg_cost_lambda_$(i)",
                 lower_bound = 0.0,
                 upper_bound = 1.0
             )
@@ -201,9 +201,9 @@ function objective_mc_variable_pg_cost(pm::AbstractUnbalancedPowerModel; report:
 
             pg_expr = 0.0
             pg_cost_expr = 0.0
-            for (i,point) in enumerate(points)
-                pg_expr += point.mw*pg_cost_lambda[i]
-                pg_cost_expr += point.cost*pg_cost_lambda[i]
+            for (j,point) in enumerate(points)
+                pg_expr += point.mw*pg_cost_lambda[j]
+                pg_cost_expr += point.cost*pg_cost_lambda[j]
             end
             JuMP.@constraint(pm.model, pg_expr == sum(var(pm, n, :pg, i)[c] for c in gen["connections"]))
             pg_cost[i] = pg_cost_expr

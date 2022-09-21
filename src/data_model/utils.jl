@@ -660,7 +660,11 @@ function _add_gen_cost_model!(math_obj::Dict{String,<:Any}, eng_obj::Dict{String
     math_obj["startup"] = 0.0
     math_obj["shutdown"] = 0.0
     math_obj["cost"] = get(eng_obj, "cost_pg_parameters", [1.0, 0.0])
-    math_obj["ncost"] = length(math_obj["cost"])
+    if math_obj["model"] == 1
+        math_obj["ncost"] = div(length(math_obj["cost"]), 2)
+    else
+        math_obj["ncost"] = length(math_obj["cost"])
+    end
 end
 
 
